@@ -21,7 +21,7 @@ Feature: Manage users
     # TODO Please check how performant this is
     And I click "Admin Group" in the "#Root_Groups" element
     Then I should see "admin@test.com" in the "#Root_Members" element
-    And I should not see "staffmember@test.com" in the "#Root_Members" element
+    And I should see "staffmember@test.com" in the "#Root_Members" element
 
   Scenario: I can add a user to the system
     When I click the "Users" CMS tab
@@ -31,7 +31,7 @@ Feature: Manage users
       | Surname | Doe |
       | Email | john.doe@test.com |
     And I press the "Create" button
-    Then I should see a "Saved member" message
+    Then I should not see a "Saved member" message
 
     When I go to "admin/security/"
     Then I should see "john.doe@test.com" in the "#Root_Users" element
