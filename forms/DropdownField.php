@@ -1,27 +1,27 @@
 <?php
 /**
  * Dropdown field, created from a <select> tag.
- * 
+ *
  * <b>Setting a $has_one relation</b>
- * 
- * Using here an example of an art gallery, with Exhibition pages, 
+ *
+ * Using here an example of an art gallery, with Exhibition pages,
  * each of which has a Gallery they belong to.  The Gallery class is also user-defined.
  * <code>
  * 	static $has_one = array(
  * 		'Gallery' => 'Gallery',
  * 	);
- * 
+ *
  * 	public function getCMSFields() {
  * 		$fields = parent::getCMSFields();
  * 		$field = new DropdownField('GalleryID', 'Gallery', Gallery::get()->map('ID', 'Title'));
  * 		$field->setEmptyString('(Select one)');
  * 		$fields->addFieldToTab('Root.Content', $field, 'Content');
  * </code>
- * 
+ *
  * As you see, you need to put "GalleryID", rather than "Gallery" here.
- * 
+ *
  * <b>Populate with Array</b>
- * 
+ *
  * Example model defintion:
  * <code>
  * class MyObject extends DataObject {
@@ -30,7 +30,7 @@
  *   );
  * }
  * </code>
- * 
+ *
  * Example instantiation:
  * <code>
  * new DropdownField(
@@ -43,11 +43,11 @@
  *   )
  * );
  * </code>
- * 
+ *
  * <b>Populate with Enum-Values</b>
- * 
+ *
  * You can automatically create a map of possible values from an {@link Enum} database column.
- * 
+ *
  * Example model definition:
  * <code>
  * class MyObject extends DataObject {
@@ -56,7 +56,7 @@
  *   );
  * }
  * </code>
- * 
+ *
  * Field construction:
  * <code>
  * new DropdownField(
@@ -65,19 +65,19 @@
  *   singleton('MyObject')->dbObject('Country')->enumValues()
  * );
  * </code>
- * 
+ *
  * <b>Disabling individual items</b>
- * 
+ *
  * Individual items can be disabled by feeding their array keys to setDisabledItems.
- * 
+ *
  * <code>
  * $DrDownField->setDisabledItems( array( 'US', 'GEM' ) );
  * </code>
- * 
+ *
  * @see CheckboxSetField for multiple selections through checkboxes instead.
  * @see ListboxField for a single <select> box (with single or multiple selections).
  * @see TreeDropdownField for a rich and customizeable UI that can visualize a tree of selectable elements
- * 
+ *
  * @package forms
  * @subpackage fields-basic
  */
@@ -89,14 +89,14 @@ class DropdownField extends FormField {
 	 * natural language description shown in the interface element.
 	 */
 	protected $source;
-	
+
 	/**
 	 * @var boolean $isSelected Determines if the field was selected
 	 * at the time it was rendered, so if {@link $value} matches on of the array
 	 * values specified in {@link $source}
 	 */
 	protected $isSelected;
-	
+
 	/**
 	 * @var boolean $hasEmptyDefault Show the first <option> element as
 	 * empty (not having a value), with an optional label defined through
@@ -104,18 +104,18 @@ class DropdownField extends FormField {
 	 * rendered with the first option from {@link $source} selected.
 	 */
 	protected $hasEmptyDefault = false;
-	
+
 	/**
 	 * @var string $emptyString The title shown for an empty default selection,
 	 * e.g. "Select...".
 	 */
 	protected $emptyString = '';
-	
+
 	/**
 	 * @var array $disabledItems The keys for items that should be disabled (greyed out) in the dropdown
 	 */
 	protected $disabledItems = array();
-	
+
 	/**
 	 * Creates a new dropdown field.
 	 * @param $name The field name
@@ -145,21 +145,19 @@ class DropdownField extends FormField {
 
 		parent::__construct($name, ($title===null) ? $name : $title, $value, $form);
 	}
-	
+
 	public function Field($properties = array()) {
 		$source = $this->getSource();
 		$options = array();
-		if($source) {
-			// SQLMap needs this to add an empty value to the options
-			if(is_object($source) && $this->emptyString) {
-				$options[] = new ArrayData(array(
-					'Value' => '',
-					'Title' => $this->emptyString,
-				));
-			}
+		if($this->getHasEmptyDefault()) {
+			$options[] = new ArrayData(array(
+				'Value' => '',
+				'Title' => $this->emptyString,
+			));
+		}
 
+		if($source) {
 			foreach($source as $value => $title) {
-				$selected = false;
 				if($value === '' && ($this->value === '' || $this->value === null)) {
 					$selected = true;
 				} else {
@@ -167,7 +165,7 @@ class DropdownField extends FormField {
 					$selected = ($value) ? $value == $this->value : $value === $this->value;
 					$this->isSelected = $selected;
 				}
-				
+
 				$disabled = false;
 				if(in_array($value, $this->disabledItems) && $title != $this->emptyString ){
 					$disabled = 'disabled';
@@ -186,18 +184,18 @@ class DropdownField extends FormField {
 
 		return parent::Field($properties);
 	}
-	
+
 	/**
 	 * Mark certain elements as disabled,
 	 * regardless of the {@link setDisabled()} settings.
-	 * 
+	 *
 	 * @param array $items Collection of array keys, as defined in the $source array
 	 */
 	public function setDisabledItems($items){
 		$this->disabledItems = $items;
 		return $this;
 	}
-	
+
 	/**
 	 * @return Array
 	 */
@@ -221,15 +219,11 @@ class DropdownField extends FormField {
 
 	/**
 	 * Gets the source array including any empty default values.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getSource() {
-		if(is_array($this->source) && $this->getHasEmptyDefault()) {
-			return array('' => $this->emptyString) + (array) $this->source;
-		} else {
-			return $this->source;
-		}
+		return $this->source;
 	}
 
 	/**
@@ -239,7 +233,7 @@ class DropdownField extends FormField {
 		$this->source = $source;
 		return $this;
 	}
-	
+
 	/**
 	 * @param boolean $bool
 	 */
@@ -247,7 +241,7 @@ class DropdownField extends FormField {
 		$this->hasEmptyDefault = $bool;
 		return $this;
 	}
-	
+
 	/**
 	 * @return boolean
 	 */
@@ -279,7 +273,7 @@ class DropdownField extends FormField {
 		$field = $this->castedCopy('LookupField');
 		$field->setSource($this->getSource());
 		$field->setReadonly(true);
-		
+
 		return $field;
 	}
 }
